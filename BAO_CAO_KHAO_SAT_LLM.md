@@ -7,26 +7,32 @@
 
 ## 1. KHẢO SÁT VÀ LỰA CHỌN MÔ HÌNH NGÔN NGỮ LỚN (LLM)
 
-### 1.1 Yêu cầu kỹ thuật đối với LLM
+### 1.1 Yêu cầu kỹ thuật & Môi trường triển khai
 - **Khả năng hiểu tiếng Việt & Pháp lý:** Phân tích chính xác câu hỏi pháp lý và điều khoản luật.
-- **Triển khai Air-gapped / On-premise:** Vận hành hoàn toàn nội bộ trên hạ tầng K3s / GPU doanh nghiệp, không gửi dữ liệu ra ngoài Internet.
-- **Tối ưu suy luận:** Tương thích tốt với các công cụ Serving như vLLM / Ollama, hỗ trợ vRAM giới hạn.
+- **Tính riêng tư & Air-gapped:** Vận hành 100% On-premise, không truyền dữ liệu ra Internet.
+- **Cấu trúc môi trường triển khai song song:**
+  1. **Môi trường Dev & Local Testing (Máy cá nhân - CPU/RAM):** Yêu cầu mô hình nhẹ (~1.5B - 3B params), đã nén Quantized (GGUF/INT4), chạy mượt qua Ollama/llama.cpp không cần GPU rời.
+  2. **Môi trường Staging & Production (Server K3s / GPU On-premise):** Sử dụng mô hình chất lượng cao (~7B - 14B params) phục vụ đa người dùng qua vLLM Serving.
 
 ### 1.2 So sánh các mô hình LLM nguồn mở
-| Bảng tiêu chí | Qwen2.5-7B / 14B-Instruct | PhoGPT-4B-Chat | Vistral-7B-Chat |
-| :--- | :--- | :--- | :--- |
-| **Nhà phát triển** | Alibaba Cloud | VinAI | VietAI |
-| **Hỗ trợ Tiếng Việt** | Rất tốt | Tốt (Chuyên tiếng Việt) | Tốt |
-| **Context Window** | 32k - 128k tokens | 2k - 4k tokens | 8k - 32k tokens |
-| **Khả năng suy luận & RAG** | Xuất sắc (Ít bị ảo giác) | Trung bình | Khá |
-| **Dung lượng VRAM yêu cầu** | ~14GB - 18GB (FP16/INT4) | ~8GB - 10GB | ~14GB |
-| **Tương thích vLLM / Ollama** | Hỗ trợ chính thức | Cần tùy biến | Hỗ trợ tốt |
+| Bảng tiêu chí | Qwen2.5-3B-Instruct (GGUF) | Qwen2.5-7B-Instruct | PhoGPT-4B-Chat | Vistral-7B-Chat |
+| :--- | :--- | :--- | :--- | :--- |
+| **Mục đích sử dụng** | **Local Dev & Testing (CPU)** | **Server Production (GPU)** | Tham khảo | Tham khảo |
+| **Dung lượng File** | ~1.9 GB | ~14 GB (FP16) / ~5.5 GB (INT4) | ~2.5 GB | ~14 GB |
+| **Yêu cầu RAM/VRAM** | ~4 GB RAM (Chạy CPU) | ~14GB VRAM (vLLM) | ~6 GB RAM | ~14GB VRAM |
+| **Context Window** | 32k tokens | 32k - 128k tokens | 2k - 4k tokens | 8k - 32k tokens |
+| **Tương thích Ollama / vLLM** | Rất mượt trên Ollama CPU | Rất mượt trên vLLM GPU | Cần tùy biến | Hỗ trợ tốt |
 
-### 1.3 Đề xuất lựa chọn
-- **Mô hình suy luận chính (LLM):** `Qwen2.5-7B-Instruct` (hoặc bản Quantized `Qwen2.5-7B-Instruct-GGUF` / `AWQ`).
-  - *Lý do:* Context window lớn giúp tiếp nhận nhiều đoạn văn bản trích dẫn RAG; khả năng lập luận tiếng Việt và định dạng đầu ra (JSON / Markdown / Citations) vượt trội.
-- **Mô hình nhúng Vector (Embedding Model):** `bkai-foundation-models/vietnamese-bi-encoder` hoặc `bge-m3`.
-  - *Lý do:* Tối ưu hóa biểu diễn không gian ngữ nghĩa cho tiếng Việt, tạo vector 1024-1536 chiều tương thích tốt với Qdrant Vector DB.
+### 1.3 Đề xuất lựa chọn mô hình chính thức
+- **Môi trường Local Dev (Laptop cá nhân):** 
+  - Mô hình LLM: `qwen2.5:3b` (Quantized GGUF chạy qua **Ollama**).
+  - *Lý do:* Chạy phản hồi cực nhanh trên CPU/RAM Laptop, tiết kiệm tài nguyên, hỗ trợ tiếng Việt xuất sắc để phát triển Back-end RAG và kiểm thử giao diện UI.
+- **Môi trường Server GPU (Hạ tầng K3s Production):** 
+  - Mô hình LLM: `Qwen2.5-7B-Instruct` (Deploy qua **vLLM / Ollama**).
+  - *Lý do:* Đảm bảo độ chính xác pháp lý cao nhất, suy luận song song nhiều request.
+- **Mô hình nhúng Vector (Embedding Model - Dùng chung):** 
+  - `bkai-foundation-models/vietnamese-bi-encoder` (hoặc `BAAI/bge-m3`).
+  - *Lý do:* Dung lượng nhẹ (~500MB), chạy rất tốt trên CPU bằng thư viện `sentence-transformers`, biểu diễn ngữ nghĩa tiếng Việt và thuật ngữ pháp lý chính xác.
 
 ---
 
