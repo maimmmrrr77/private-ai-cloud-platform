@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "question": "Thời giờ làm việc bình thường của người lao động được quy định như thế nào?",
+    "expected_source": "Bộ luật Lao động 2019",
+    "category": "Lao động"
+  },
+  {
+    "id": 2,
+    "question": "Điều kiện để thành lập công ty trách nhiệm hữu hạn một thành viên là gì?",
+    "expected_source": "Luật Doanh nghiệp 2020",
+    "category": "Doanh nghiệp"
+  }
+]
