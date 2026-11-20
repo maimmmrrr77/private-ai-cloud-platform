@@ -2,11 +2,20 @@ from fastapi import FastAPI
 from app.api import chat, auth, documents
 from app.models.database import init_db, SessionLocal, User
 from app.core.security import get_password_hash
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Private AI Cloud - Legal RAG API",
     description="API hệ thống trợ lý AI pháp lý nội bộ tích hợp RAG, Guardrails, RBAC & Quản lý tri thức",
     version="1.1.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Khởi tạo Database và tạo sẵn 1 tài khoản Admin mặc định để test
